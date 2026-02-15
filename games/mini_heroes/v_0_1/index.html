@@ -113,6 +113,7 @@
     <script>
       function openFile(callback) {
         const input = document.getElementById('fileInput');
+		input.value = ''; // Clear the value to allow selecting the same file again
         input.onchange = (event) => {
           const file = event.target.files[0];
           const reader = new FileReader();
