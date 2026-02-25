@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EFLCRJCYY9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EFLCRJCYY9');
+</script>    
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Hexagonal Strategies | Turn-based games in browser</title>
+    <meta name="title" content="Hexagonal Strategies | Turn-based games in browser">
+    <meta name="description" content="Hexagonal Strategies — a collection of turn-based games on a hexagonal grid. Browser-based strategies in the spirit of classic games, free online play without registration.">
+    <meta name="keywords" content="hexagonal strategy, turn-based strategy, hex grid games, online strategy, browser games, heroes of might and magic, free strategy games, no registration games, turn-based games, fog of war strategies, zone of control games, transport in strategy games, multiplayer strategies, tactical games, mini heroes, гексагональная стратегия, пошаговая стратегия, игры на гексагональной сетке, стратегии онлайн, игры в браузере, герои меча и магии, стратегии бесплатно, игры без регистрации, пошаговые игры, стратегии с туманом войны, игры с зонами контроля, транспорт в стратегиях, многопользовательские стратегии">		
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #dfe6e9;
+        position: relative;
+      }
+      canvas.emscripten {
+        /*image-rendering: pixelated;*/
+        /*image-rendering: crisp-edges;*/
+        border: none;
+        background-color: #ffffff;
+        max-width: 100%;
+        max-height: 100%;
+      }
+      
+      canvas:focus {
+        outline: none; /* Removes blue glow or border */
+      }
+    
+      canvas {
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+      
+      .footer-link {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        z-index: 10;
+      }
+      
+      .footer-link a {
+        color: #2d3436;
+        text-decoration: none;
+        padding: 8px 16px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+      
+      .footer-link a:hover {
+        background-color: rgba(255, 255, 255, 1);
+        color: #0984e3;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+
+    <script type='text/javascript' src="https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js"></script>
+
+    <script type='text/javascript'>
+      function saveFileFromMEMFSToDisk(memoryFSname, localFSname) {
+        var isSafari = false; // User agent access is limited
+        var data = FS.readFile(memoryFSname);
+        var blob;
+
+        if (isSafari) blob = new Blob([data.buffer], { type: "application/octet-stream" });
+        else blob = new Blob([data.buffer], { type: "application/octet-binary" });
+
+        saveAs(blob, localFSname);
+      }
+    </script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+   (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+   m[i].l=1*new Date();
+   for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+   k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+   (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+   ym(96437886, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true
+   });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/96437886" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+  </head>
+  <body>
+
+    <input type="file" id="fileInput" style="display:none" />
+    <script>
+      function openFile(callback) {
+        const input = document.getElementById('fileInput');
+		input.value = ''; // Clear the value to allow selecting the same file again
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = () => {
+            const data = new Uint8Array(reader.result);
+            // Allocate memory in Emscripten heap
+            const buffer = Module._malloc(data.length);
+            Module.HEAPU8.set(data, buffer);
+            // Call your C function with pointer and length
+            Module.ccall('LoadFileCallback', null, ['number', 'number'], [buffer, data.length]);
+            Module._free(buffer);
+          };
+          reader.readAsArrayBuffer(file);
+        };
+        input.click();
+      }
+    </script>
+
+    <script>
+      async function pasteFromClipboard() {
+        try {
+          const text = await navigator.clipboard.readText();
+          // Преобразуем в C-строку
+          const lengthBytes = lengthBytesUTF8(text) + 1;
+          const stringOnWasmHeap = Module._malloc(lengthBytes);
+          stringToUTF8(text, stringOnWasmHeap, lengthBytes);
+          Module.ccall('OnClipboardPaste', null, ['number'], [stringOnWasmHeap]);
+          // Не забудь освободить память в C при необходимости
+        } catch (err) {
+          console.error('Ошибка при вставке:', err);
+        }
+      }
+    </script>
+
+    <script>
+      function copyToClipboard(ptr) {
+        const text = UTF8ToString(ptr);
+        navigator.clipboard.writeText(text).then(() => {
+          console.log('Скопировано:', text);
+        }).catch(err => {
+          console.error('Ошибка при копировании:', err);
+        });
+      }
+    </script>
+
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    <p id="output"></p>
+    
+    <div class="footer-link">
+      🎮 © 2026 &nbsp;<a href="https://d00m4ace.com/" target="_blank">d00m4ace.com</a>
+    </div>
+
+    <script>
+      var Module = {
+        print: (function() {
+          var element = document.getElementById('output');
+          if (element) element.value = '';
+          return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            console.log(text);
+            if (element) {
+              element.value += text + "\n";
+              element.scrollTop = element.scrollHeight;
+            }
+          };
+        })(),
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+          return canvas;
+        })()
+      };
+    </script>
+
+    <script async type="text/javascript" src="main.js"></script>    
+    
+<script>
+        window.onload = () => {
+            const canvas = document.getElementsByTagName("canvas")[0];
+            canvas.setAttribute("tabindex", "0");
+            canvas.focus();
+
+            document.addEventListener("keydown", function(e) {
+                if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
+                    e.preventDefault();
+                }
+            });
+        };
+</script>        
+    
+  </body>
+</html>
