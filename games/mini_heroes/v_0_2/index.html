@@ -1,74 +1,126 @@
 <!doctype html>
 <html lang="en-us">
   <head>
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-EFLCRJCYY9"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-EFLCRJCYY9');
-</script>    
+</script>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Hexagonal Strategies | Turn-based games in browser</title>
     <meta name="title" content="Hexagonal Strategies | Turn-based games in browser">
     <meta name="description" content="Hexagonal Strategies — a collection of turn-based games on a hexagonal grid. Browser-based strategies in the spirit of classic games, free online play without registration.">
-    <meta name="keywords" content="hexagonal strategy, turn-based strategy, hex grid games, online strategy, browser games, heroes of might and magic, free strategy games, no registration games, turn-based games, fog of war strategies, zone of control games, transport in strategy games, multiplayer strategies, tactical games, mini heroes, гексагональная стратегия, пошаговая стратегия, игры на гексагональной сетке, стратегии онлайн, игры в браузере, герои меча и магии, стратегии бесплатно, игры без регистрации, пошаговые игры, стратегии с туманом войны, игры с зонами контроля, транспорт в стратегиях, многопользовательские стратегии">		
+    <meta name="keywords" content="hexagonal strategy, turn-based strategy, hex grid games, online strategy, browser games, heroes of might and magic, free strategy games, no registration games, turn-based games, fog of war strategies, zone of control games, transport in strategy games, multiplayer strategies, tactical games, mini heroes, гексагональная стратегия, пошаговая стратегия, игры на гексагональной сетке, стратегии онлайн, игры в браузере, герои меча и магии, стратегии бесплатно, игры без регистрации, пошаговые игры, стратегии с туманом войны, игры с зонами контроля, транспорт в стратегиях, многопользовательские стратегии">
 
-    <!-- minimal-ui скрывает адресную строку на iOS Safari при старте -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
-    <!-- Полноэкранный режим для добавленных на домашний экран (iOS/Android) -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	
-	<link rel="manifest" href="/games/mini_heroes/v_0_2/manifest.json">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="HexStrat">
+    <meta name="theme-color" content="#dfe6e9">
 
-<style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-    background-color: #dfe6e9;
-  }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+        background-color: #dfe6e9;
+      }
 
-  /* Ключевое: fixed всегда = видимая область, независимо от браузерного chrome */
-  #canvas-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    touch-action: none;
-  }
+      /* position:fixed — всегда точно равен видимой области экрана,
+         не зависит от адресной строки, dvh, vh и прочих проблем */
+      #canvas-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* блокируем системный скролл/зум страницы */
+        touch-action: none;
+      }
 
-  canvas.emscripten {
-    border: none;
-    background-color: #ffffff;
-    display: block;
-    touch-action: auto;
-  }
+      canvas.emscripten {
+        border: none;
+        background-color: #ffffff;
+        display: block;
+        /* тач-ивенты свободно доходят до Emscripten */
+        touch-action: auto;
+      }
 
-  canvas:focus { outline: none; }
+      canvas:focus {
+        outline: none;
+      }
 
-  canvas {
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-  }
-</style>
+      canvas {
+        user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+
+      .footer-link {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        z-index: 10;
+      }
+
+      .footer-link a {
+        color: #2d3436;
+        text-decoration: none;
+        padding: 8px 16px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .footer-link a:hover {
+        background-color: rgba(255, 255, 255, 1);
+        color: #0984e3;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Кнопка fullscreen — показываем только на тач-устройствах */
+      #btn-fullscreen {
+        display: none;
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 100;
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.35);
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+      }
+      @media (pointer: coarse) {
+        #btn-fullscreen { display: flex; }
+      }
+    </style>
 
     <script type='text/javascript' src="https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js"></script>
 
@@ -84,7 +136,7 @@
     </script>
 
 <!-- Yandex.Metrika counter -->
-<script type="text/javascript" >
+<script type="text/javascript">
    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
    m[i].l=1*new Date();
    for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
@@ -103,6 +155,7 @@
   <body>
 
     <input type="file" id="fileInput" style="display:none" />
+
     <script>
       function openFile(callback) {
         const input = document.getElementById('fileInput');
@@ -149,8 +202,12 @@
     </script>
 
     <div id="canvas-wrapper">
-  <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
-	</div>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <!-- Кнопка fullscreen для мобильных -->
+    <button id="btn-fullscreen" title="Fullscreen">⛶</button>
+
     <p id="output"></p>
 
     <script>
@@ -174,82 +231,87 @@
       };
     </script>
 
-    <script async type="text/javascript" src="main.js"></script>    
-    
+    <script async type="text/javascript" src="main.js"></script>
+
     <script>
       window.onload = () => {
         const canvas = document.getElementById('canvas');
+        const wrapper = document.getElementById('canvas-wrapper');
+
         canvas.setAttribute("tabindex", "0");
         canvas.focus();
 
+        // Стрелки не скроллят страницу
         document.addEventListener("keydown", function(e) {
           if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) {
             e.preventDefault();
           }
         });
 
-        // Трюк для скрытия адресной строки на Android Chrome
-        function hideAddressBar() {
-          if (window.scrollY === 0) {
-            window.scrollTo(0, 1);
-          }
+        // --- Fullscreen API ---
+        function goFullscreen() {
+          const el = document.documentElement;
+          const fn = el.requestFullscreen
+                   || el.webkitRequestFullscreen
+                   || el.mozRequestFullScreen
+                   || el.msRequestFullscreen;
+          if (fn) fn.call(el);
         }
 
-        function getViewportSize() {
-          // visualViewport точнее учитывает клавиатуру и браузерный chrome на мобильных
-          if (window.visualViewport) {
-            return {
-              w: window.visualViewport.width,
-              h: window.visualViewport.height
-            };
-          }
-          return {
-            w: window.innerWidth,
-            h: window.innerHeight
-          };
-        }
+        document.getElementById('btn-fullscreen').addEventListener('click', goFullscreen);
 
+        // Автоматически уходим в fullscreen при первом тапе (один раз)
+        let fullscreenTriggered = false;
+        canvas.addEventListener('touchstart', function autoFullscreen() {
+          if (!fullscreenTriggered && !document.fullscreenElement) {
+            fullscreenTriggered = true;
+            goFullscreen();
+          }
+          canvas.removeEventListener('touchstart', autoFullscreen);
+        }, { once: true });
+
+        // --- PWA install prompt (Android Chrome) ---
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredInstallPrompt = e;
+          // Можно показать свою кнопку "Установить игру"
+        });
+
+        // Вызывай эту функцию из C если хочешь показать промпт установки:
+        // Module.ccall или просто window.promptPWAInstall()
+        window.promptPWAInstall = () => {
+          if (deferredInstallPrompt) deferredInstallPrompt.prompt();
+        };
+
+        // --- Подгонка canvas под видимую область ---
         function fitCanvas() {
-		  const naturalW = canvas.width;
-		  const naturalH = canvas.height;
-		  if (!naturalW || !naturalH) return;
+          const naturalW = canvas.width;
+          const naturalH = canvas.height;
+          if (!naturalW || !naturalH) return;
 
-		  const wrapper = document.getElementById('canvas-wrapper');
-		  const w = wrapper.clientWidth;
-		  const h = wrapper.clientHeight;
+          const w = wrapper.clientWidth;
+          const h = wrapper.clientHeight;
+          const scale = Math.min(w / naturalW, h / naturalH);
 
-		  const scale = Math.min(w / naturalW, h / naturalH);
-
-		  canvas.style.width  = Math.floor(naturalW * scale) + "px";
-		  canvas.style.height = Math.floor(naturalH * scale) + "px";
-		}
+          canvas.style.width  = Math.floor(naturalW * scale) + "px";
+          canvas.style.height = Math.floor(naturalH * scale) + "px";
+        }
 
         fitCanvas();
-
-        // resize — срабатывает в том числе когда браузер прячет/показывает адресную строку
         window.addEventListener("resize", fitCanvas);
+        window.addEventListener("orientationchange", () => setTimeout(fitCanvas, 300));
+        document.addEventListener("fullscreenchange", () => setTimeout(fitCanvas, 100));
 
-        // visualViewport более точен на мобильных
         if (window.visualViewport) {
           window.visualViewport.addEventListener("resize", fitCanvas);
         }
 
-        // Поворот экрана: даём браузеру 300ms пересчитать размеры
-        window.addEventListener("orientationchange", () => {
-          setTimeout(() => {
-            hideAddressBar();
-            fitCanvas();
-          }, 300);
-        });
-
         // Emscripten выставляет width/height асинхронно
         const observer = new MutationObserver(() => setTimeout(fitCanvas, 0));
         observer.observe(canvas, { attributes: true, attributeFilter: ["width", "height"] });
-
-        // Первоначальное скрытие адресной строки
-        setTimeout(hideAddressBar, 100);
       };
     </script>
-    
+
   </body>
 </html>
